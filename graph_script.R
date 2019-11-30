@@ -79,17 +79,10 @@ ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity",
 # TODO : parvenir à rassembler les lignes avec le m$eme auteur
 
 
-# TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de la côte
-
-
-# Récupération des noms des éditeurs
-#editeur_list <- str_extract_all(df_book_Tls$Editeur, ".+(?=([,][ ][1|2][0|9][0-9]{2}))")
-#editeur_vect <- unlist(editeur_list)
-#editeur <- editeur_vect[editeur_vect != ""]
+# TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de l'édition
 
 # TODO : graphe type graphique radar pour 2018 pour tous les éditeurs
 # radarchart(data)
-
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type
 Flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
