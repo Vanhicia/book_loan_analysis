@@ -1,46 +1,102 @@
 library(ggplot2)
 library(plyr)
 library(reshape2)
+library(fmsb)
+library(stringr)
 
-df_book_Tls <- read.csv("dataset_Toulouse.csv", header=TRUE, sep=";")
-df_all_Paris <- read.csv("dataset_Paris.csv", header=TRUE, sep=";")
+df_book_Tls <- read.csv("dataset_Toulouse.csv",  fileEncoding="UTF-8-BOM", header=TRUE, sep=";")
+df_all_Paris <- read.csv("dataset_Paris.csv",  fileEncoding="UTF-8-BOM", header=TRUE, sep=";")
 
-#Toulouse
+# ============================= TOULOUSE ============================ #
 
-# Nettoyage :
-df_book_Tls <- rename(df_book_Tls, c(ANNEE="Année", TITRE="Titre", AUTEUR="Auteur"))
+# Composition du dataset ---------------------------------------------
 
-# nettoyer noms des auteurs : suppr infos sur date de naissance entre parenthèses
+# Année 
+# Nb_prêts 
+# Titre 
+# Auteur 
+# Editeur 
+# Indice 
+# Bib
+# Côte
+# Cat1 : Indique si l'imprimé est pour les enfants (E) ou adultes (A)
+# Cat2 : Indique son type : Album (ALB), Livre (LIV), CD (CD), Polar (POL), etc. 
+
+
+# Renommage des colonnes du dataframe --------------------------------
+
+df_book_Tls <- rename(df_book_Tls, c(ANNEE = "Année", 
+                                     Nbre.de.prêts = "Nb_prêts", 
+                                     TITRE = "Titre", 
+                                     AUTEUR = "Auteur", 
+                                     Cat.1 = "Cat1", 
+                                     Cat.2 = "Cat2"))
+
+
+# Nettoyage des noms des auteurs : suppr infos sur date de naissance entre parenthèses
 df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
 
-# rassembler les catégories similaires
 
-# rassembler les catégries "enfant" (BB, TP, E)
-df_book_Tls$Cat.1[df_book_Tls$Cat.1 %in% c("BB", "TP", "E")] <- "E"
-#df_book_Tls$Cat.1[df_book_Tls$Cat.1 %in% c("A")] <- "Adulte"
+# Nettoyage des éditeurs : suppr infos sur l'année de l'édition
+#TODO df_book_Tls$Année_édition <- sub(".+(?=([,][ ][1|2][0|9][0-9]{2}))","",df_book_Tls$Editeur)
+df_book_Tls$Editeur <- gsub("[,][ ][0-9]{4}-?","",df_book_Tls$Editeur)
 
-#df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("ALB")] <- "ALBUM"
-df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("LIV", "LV")] <- "LIV"
-df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("CDVDROM")] <- "CD"
-#df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("LIVDOC")] <- "LIVRE DOC"
-df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("LIVCD", "LIVCDVDR")] <- "LIVCD"
-#df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("POL")] <- "POLAR"
-df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("ROM", "TE")] <- "ROM"
-#df_book_Tls$Cat.2[df_book_Tls$Cat.2 %in% c("SF")] <- "SCIENCE FICTION"
+# Renommage et fusion des catégories similaires ----------------------
 
-# supprimer les lignes où le nombre de prêts n'est pas indiqué
+# Bébé (BB) + Très petit (TP) + Enfant (E) devient Enfant (E)
+df_book_Tls$Cat1[df_book_Tls$Cat1 %in% c("BB", "TP", "E")] <- "E"
+
+# Livre (LIV) + Livre (LV) devient Livre (LIV)
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIV", "LV")] <- "LIV"
+
+# CD/DVD ROM (CDVDROM) devient CD (CD)
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("CDVDROM")] <- "CD"
+
+# Livre CD (LIVCD) + Livre CD/DVD ROM (LIVCDVDR) devient Livre CD (LIVCD)
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIVCD", "LIVCDVDR")] <- "LIVCD"
+
+# Roman (ROM) + ??? (TE) devient ROM (ROM)
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("ROM", "TE")] <- "ROM"
+
+
+# Suppression des lignes vides -----
 df_book_Tls <- na.omit(df_book_Tls) 
 
-# plot l'évolution du nombre de prêts par catégorie au cours des années
-df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat.1,Cat.2), summarize, Total.nbre.prêts=sum(Nbre.de.prêts))
+
+# Plot du nombre de prêts par catégorie au cours des années ----------
+df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total.nbre.prêts=sum(Nb_prêts))
+
 #TODO : enlever lignes sans catégorie 1
-ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat.2)) + geom_line() + facet_grid(.~Cat.1)
+ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat.1)
 
 # top 10 des auteurs
-auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb.prêts=sum(Nbre.de.prêts))
+auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb.prêts=sum(Nb_prêts))
 auteurs <- auteurs[auteurs$Auteur != "-",]
 auteurs2018 <- auteurs[auteurs$Année == 2018,]
 top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb.prêts, decreasing = TRUE),],10)
 grepl("Sobral, Patrick", top10auteurs2018$Auteur)
 ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() 
 # TODO : parvenir à rassembler les lignes avec le m$eme auteur
+
+
+# TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de la côte
+
+
+# Récupération des noms des éditeurs
+#editeur_list <- str_extract_all(df_book_Tls$Editeur, ".+(?=([,][ ][1|2][0|9][0-9]{2}))")
+#editeur_vect <- unlist(editeur_list)
+#editeur <- editeur_vect[editeur_vect != ""]
+
+# TODO : graphe type graphique radar pour 2018 pour tous les éditeurs
+# radarchart(data)
+
+
+# Chaque année pour un éditeur, le nombre d'imprimés par type
+Flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
+table(Flammarion$Cat2)
+df_editeur_par_cat_Tls <- ddply(Flammarion, .(Année), function(x){
+  table(x$Cat2)
+}) 
+
+# TODO : graphe
+
