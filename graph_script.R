@@ -112,7 +112,7 @@ df_total_par_cat1_Tls <- df_total_par_cat1_Tls[df_total_par_cat1_Tls$Cat1 !="",]
 # Plot dataframe 
 ggplot(df_total_par_cat1_Tls, aes(x=Année, y=Total_nbre_prêts, fill=Cat1)) +
   geom_bar(stat="identity", position=position_dodge()) +
-  ggtitle("Evolution du nombre de prêts entre 2011 et 2018") +
+  ggtitle("Evolution du nombre de prêts par les adultes/enfants") +
   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
   
 
@@ -125,7 +125,7 @@ df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 # Plot dataframe 
 ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) +
   geom_line() + facet_grid(.~Cat1) +
-  ggtitle("Evolution du nombre de prêts entre 2011 et 2018")
+  ggtitle("Evolution du nombre de prêts pour chaque catégorie")
 
 
 # Top 10 des auteurs
@@ -146,7 +146,9 @@ auteurs2018 <- ddply(auteurs2018, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_
 top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb_prêts, decreasing = TRUE),],10)
 
 # On l'affiche
-ggplot(top10auteurs2018, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() + ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts") 
+ggplot(top10auteurs2018, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
+  geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
+  ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts") 
 
 
 # Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
