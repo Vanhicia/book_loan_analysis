@@ -76,12 +76,12 @@ df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
 
 # Top 10 des auteurs
-auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb.prêts=sum(Nb_prêts))
+auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_prêts))
 auteurs <- auteurs[auteurs$Auteur != "-",]
 auteurs2018 <- auteurs[auteurs$Année == 2018,]
-top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb.prêts, decreasing = TRUE),],10)
+top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb_prêts, decreasing = TRUE),],10)
 grepl("Sobral, Patrick", top10auteurs2018$Auteur)
-ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() 
+ggplot(top10auteurs2018, aes(x=Auteur, y=Nb_prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() 
 # TODO : parvenir à rassembler les lignes avec le m$eme auteur
 
 
@@ -105,19 +105,41 @@ df_2018_editeur <- df_2018_editeur[, colSums(df_2018_editeur != 0) > 0]
 # On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
 df_2018_editeur_with_rownames <- data.frame(df_2018_editeur[,-1], row.names=df_2018_editeur[,1])
 
+# On ajoute le nombre de prêts pour effectuer le top 5 après
+df_top_editeurs <- df_2018_editeur_with_rownames
+df_top_editeurs$Nb_prêts <- apply(df_top_editeurs,1,sum)
+
 # On détermine les bornes du graphe radar
 value_max = max(df_2018_editeur_with_rownames, na.rm=TRUE)
-times = length(df_2018_editeur$Editeur)
-
-# On ajoute les bornes dans le dataframe
-df_2018_editeur_with_rownames <- rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames)
+times = nrow(df_2018_editeur)
 
 # Plot le graphe radar
-radarchart(df_2018_editeur_with_rownames)
+radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames))
 
 
 
+# TOP 5 des éditeurs en 2018 ----------------------------------------
+# On remet la colonne Editeur
+df_top_editeurs <- tibble::rownames_to_column(df_top_editeurs, "Editeur")
 
+# On garde les 5 éditeurs dont les imprimés ont été le plus empruntés
+top_editeur2018 <- head(df_top_editeurs[order(df_top_editeurs$Nb_prêts, decreasing = TRUE),],5)
+
+# On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
+top_editeur2018 <- data.frame(top_editeur2018[,-1], row.names=top_editeur2018[,1])
+
+# On enlève la colonne du nombre de prêts
+top_editeur2018$Nb_prêts <- NULL
+
+# On détermine les bornes du graphe radar
+value_max = max(top_editeur2018, na.rm=TRUE)
+times = nrow(top_editeur2018)
+
+# On ajoute les bornes dans le dataframe et on l'affiche
+layout(matrix(1:6, ncol=3)) 
+lapply(1:5, function(i) { 
+  radarchart(rbind(rep(value_max,times) , rep(0,times) , top_editeur2018[i,-1]))
+})
 
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type -------
