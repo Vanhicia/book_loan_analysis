@@ -106,8 +106,8 @@ df_2018_editeur <- df_2018_editeur[, colSums(df_2018_editeur != 0) > 0]
 df_2018_editeur_with_rownames <- data.frame(df_2018_editeur[,-1], row.names=df_2018_editeur[,1])
 
 # On ajoute le nombre de prêts pour effectuer le top 5 après
-df_top_editeurs <- df_2018_editeur_with_rownames
-df_top_editeurs$Nb_prêts <- apply(df_top_editeurs,1,sum)
+df_top_editeur2018 <- df_2018_editeur_with_rownames
+df_top_editeur2018$Nb_prêts <- apply(df_top_editeur2018,1,sum)
 
 # On détermine les bornes du graphe radar
 value_max = max(df_2018_editeur_with_rownames, na.rm=TRUE)
@@ -120,38 +120,38 @@ radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rown
 
 # TOP 5 des éditeurs en 2018 ----------------------------------------
 # On remet la colonne Editeur
-df_top_editeurs <- tibble::rownames_to_column(df_top_editeurs, "Editeur")
+df_top_editeur2018 <- tibble::rownames_to_column(df_top_editeur2018, "Editeur")
 
 # On garde les 5 éditeurs dont les imprimés ont été le plus empruntés
-top_editeur2018 <- head(df_top_editeurs[order(df_top_editeurs$Nb_prêts, decreasing = TRUE),],5)
+df_top_editeur2018 <- head(df_top_editeur2018[order(df_top_editeur2018$Nb_prêts, decreasing = TRUE),],5)
 
 # On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
-top_editeur2018 <- data.frame(top_editeur2018[,-1], row.names=top_editeur2018[,1])
+df_top_editeur2018 <- data.frame(df_top_editeur2018[,-1], row.names=df_top_editeur2018[,1])
 
 # On enlève la colonne du nombre de prêts
-top_editeur2018$Nb_prêts <- NULL
+df_top_editeur2018$Nb_prêts <- NULL
 
 # On détermine les bornes du graphe radar
-value_max = max(top_editeur2018, na.rm=TRUE)
-times = nrow(top_editeur2018)
+value_max = max(df_top_editeur2018, na.rm=TRUE)
+times = nrow(df_top_editeur2018)
 
 # On ajoute les bornes dans le dataframe et on l'affiche
 layout(matrix(1:6, ncol=3)) 
 lapply(1:5, function(i) { 
-  radarchart(rbind(rep(value_max,times) , rep(0,times) , top_editeur2018[i,-1]))
+  radarchart(rbind(rep(value_max,times) , rep(0,times) , df_top_editeur2018[i,-1]))
 })
 
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type -------
 flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
-df_editeur <- ddply(flammarion, .(Année), function(x){
+df_un_editeur <- ddply(flammarion, .(Année), function(x){
   table(x$Cat2)
 }) 
 
 # On enlève les colonnes vides
-df_editeur <- df_editeur[, colSums(df_editeur != 0) > 0]
+df_un_editeur <- df_un_editeur[, colSums(df_un_editeur != 0) > 0]
 
 # Plop dataframe
-df_editeur <- melt(df_editeur, id.vars="Année", variable.name = "Type", value.name = "Nombre")
-ggplot(df_editeur, aes(Année,Nombre, col=Type)) + geom_line() + geom_point()
+df_un_editeur <- melt(df_un_editeur, id.vars="Année", variable.name = "Type", value.name = "Nombre")
+ggplot(df_un_editeur, aes(Année,Nombre, col=Type)) + geom_line() + geom_point()
 
