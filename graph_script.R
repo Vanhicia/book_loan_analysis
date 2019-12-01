@@ -5,7 +5,6 @@ library(fmsb)
 library(stringr)
 
 df_book_Tls <- read.csv("dataset_Toulouse.csv",  fileEncoding="UTF-8-BOM", header=TRUE, sep=";")
-df_all_Paris <- read.csv("dataset_Paris.csv",  fileEncoding="UTF-8-BOM", header=TRUE, sep=";")
 
 # ============================= TOULOUSE ============================ #
 
@@ -23,7 +22,7 @@ df_all_Paris <- read.csv("dataset_Paris.csv",  fileEncoding="UTF-8-BOM", header=
 # Cat2 : Indique son type : Album (ALB), Livre (LIV), CD (CD), Polar (POL), etc. 
 
 
-# Renommage des colonnes du dataframe --------------------------------
+# Renommage des colonnes et des valeurs du dataframe --------------------------------
 
 df_book_Tls <- rename(df_book_Tls, c(ANNEE = "Année", 
                                      Nbre.de.prêts = "Nb_prêts", 
@@ -31,7 +30,6 @@ df_book_Tls <- rename(df_book_Tls, c(ANNEE = "Année",
                                      AUTEUR = "Auteur", 
                                      Cat.1 = "Cat1", 
                                      Cat.2 = "Cat2"))
-
 
 # Nettoyage des noms des auteurs : suppr infos sur date de naissance entre parenthèses
 df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
@@ -63,8 +61,14 @@ df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("CDVDROM")] <- "CD"
 # Livre CD (LIVCD) + Livre CD/DVD ROM (LIVCDVDR) devient Livre CD (LIVCD)
 df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIVCD", "LIVCDVDR")] <- "LIVCD"
 
-# Roman (ROM) + E-book (TE) devient ROM (ROM)
+# Roman (ROM) + E-book (TE) devient Roman (ROM)
 df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("ROM", "TE")] <- "ROM"
+
+# Renommage des catégories 1
+df_book_Tls$Cat1 <- as.character(df_book_Tls$Cat1)
+df_book_Tls$Cat1[df_book_Tls$Cat1=="A"] <- "Adulte"
+df_book_Tls$Cat1[df_book_Tls$Cat1=="E"] <- "Enfant"
+df_book_Tls$Cat1 <- as.factor(df_book_Tls$Cat1)
 
 
 # Suppression des lignes vides -----
