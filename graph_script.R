@@ -38,10 +38,18 @@ df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
 
 
 # Nettoyage des éditeurs : suppr infos sur l'année de l'édition
-#substr(x, nchar(x), nchar(x)-5)
 
-#df_book_Tls$Année_édition <- sub(".+(?=([,][ ][1|2][0|9][0-9]{2}))","",df_book_Tls$Editeur)
+# On enlève les adresses et pays des éditeurs
+df_book_Tls$Editeur <- gsub(" ?[(].+[)] ?","",df_book_Tls$Editeur)
+
+# On ajoute une colonne pour l'année de l'édition de l'imprimé
+df_book_Tls$Année_édition <- gsub("[^0-9]+","",df_book_Tls$Editeur)
+
+# On nettoie la colonne des éditeurs et harmonise les notations
 df_book_Tls$Editeur <- gsub("[,][ ][0-9]{4}-?","",df_book_Tls$Editeur)
+df_book_Tls$Editeur <- gsub("[.]","",df_book_Tls$Editeur)
+df_book_Tls$Editeur <- gsub("[]],","] ;",df_book_Tls$Editeur)
+df_book_Tls$Editeur <- gsub("[ ],"," ;",df_book_Tls$Editeur)
 
 
 # Renommage et fusion des catégories similaires ----------------------
@@ -89,7 +97,6 @@ ggplot(top10auteurs2018, aes(x=Auteur, y=Nb_prêts)) + geom_bar(stat="identity",
 
 
 # Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
-
 # On garde que les emprunts de 2018
 df_2018 <- df_book_Tls[df_book_Tls$Année=="2018",] 
 
