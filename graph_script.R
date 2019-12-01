@@ -103,6 +103,19 @@ df_book_Tls$Cat2 <- as.factor(df_book_Tls$Cat2)
 df_book_Tls <- na.omit(df_book_Tls) 
 
 
+# Plot du nombre de prêts par catégorie 1 au cours des années ----------
+df_total_par_cat1_Tls <- ddply(df_book_Tls, .(Année,Cat1), summarize, Total_nbre_prêts=sum(Nb_prêts))
+
+# On enleve les lignes sans catégorie 1
+df_total_par_cat1_Tls <- df_total_par_cat1_Tls[df_total_par_cat1_Tls$Cat1 !="",]
+
+# Plot dataframe 
+ggplot(df_total_par_cat1_Tls, aes(x=Année, y=Total_nbre_prêts, fill=Cat1)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  ggtitle("Evolution du nombre de prêts entre 2011 et 2018") +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+  
+
 # Plot du nombre de prêts par catégorie au cours des années ----------
 df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total_nbre_prêts=sum(Nb_prêts))
 
@@ -110,7 +123,9 @@ df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total
 df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 
 # Plot dataframe 
-ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1) + ggtitle("Evolution du nombre de prêts entre 2011 et 2018")
+ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) +
+  geom_line() + facet_grid(.~Cat1) +
+  ggtitle("Evolution du nombre de prêts entre 2011 et 2018")
 
 
 # Top 10 des auteurs
@@ -167,7 +182,7 @@ radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rown
 # On remet la colonne Editeur
 df_top_editeur2018 <- tibble::rownames_to_column(df_top_editeur2018, "Editeur")
 
-# On garde les 5 éditeurs dont les imprimés ont été le plus empruntés
+# On garde les 5 éditeurs dont les imprimés ont été les plus empruntés
 df_top_editeur2018 <- head(df_top_editeur2018[order(df_top_editeur2018$Nb_prêts, decreasing = TRUE),],5)
 
 # On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
