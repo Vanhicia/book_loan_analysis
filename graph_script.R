@@ -84,18 +84,45 @@ ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity",
 
 # TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de l'édition
 
-# TODO : graphe type graphique radar pour 2018 pour tous les éditeurs
-# radarchart(data)
 
-# Chaque année pour un éditeur, le nombre d'imprimés par type
-Flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
-df_editeur <- ddply(Flammarion, .(Année), function(x){
+
+# On garde que les emprunts de 2018
+df_2018 <- df_book_Tls[df_book_Tls$Année=="2018",] 
+
+# On trie par éditeur et type d'imprimés
+df_2018_editeur <- df_2018[,c("Editeur","Cat2")]
+df_2018_editeur <- ddply(df_2018_editeur, .(Editeur), function(x){
+  table(x$Cat2)
+}) 
+
+# On enlève les colonnes vides
+df_2018_editeur <- df_2018_editeur[, colSums(df_2018_editeur != 0) > 0]
+
+# On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
+df_2018_editeur_with_rownames <- data.frame(df_2018_editeur[,-1], row.names=df_2018_editeur[,1])
+
+# On détermine les bornes du graphe radar
+value_max = max(df_2018_editeur_with_rownames, na.rm=TRUE)
+times = length(df_2018_editeur$Editeur)
+
+# On ajoute les bornes dans le dataframe
+df_2018_editeur_with_rownames <- rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames)
+
+# Plot le graphe radar
+radarchart(df_2018_editeur_with_rownames)
+
+
+
+# Chaque année pour un éditeur, le nombre d'imprimés par type -------
+flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
+df_editeur <- ddply(flammarion, .(Année), function(x){
   table(x$Cat2)
 }) 
 
 # On enlève les colonnes vides
 df_editeur <- df_editeur[, colSums(df_editeur != 0) > 0]
 
+# Plop dataframe
 df_editeur <- melt(df_editeur, id.vars="Année", variable.name = "Type", value.name = "Nombre")
 ggplot(df_editeur, aes(Année,Nombre, col=Type)) + geom_line() + geom_point()
 
