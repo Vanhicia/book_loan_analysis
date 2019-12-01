@@ -31,7 +31,7 @@ df_book_Tls <- rename(df_book_Tls, c(ANNEE = "Année",
                                      Cat.1 = "Cat1", 
                                      Cat.2 = "Cat2"))
 
-# Nettoyage des noms des auteurs : suppr infos sur date de naissance entre parenthèses
+# Nettoyage des noms des auteurs : supprimer infos sur date de naissance entre parenthèses
 df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
 
 
@@ -49,26 +49,54 @@ df_book_Tls$Editeur <- gsub("[ ],"," ;",df_book_Tls$Editeur)
 
 # Renommage et fusion des catégories similaires ----------------------
 
-# Bébé (BB) + Très petit (TP) + Enfant (E) devient Enfant (E)
-df_book_Tls$Cat1[df_book_Tls$Cat1 %in% c("BB", "TP", "E")] <- "E"
-
-# Livre (LIV) + Livre (LV) devient Livre (LIV)
-df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIV", "LV")] <- "LIV"
-
-# CD/DVD ROM (CDVDROM) devient CD (CD)
-df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("CDVDROM")] <- "CD"
-
-# Livre CD (LIVCD) + Livre CD/DVD ROM (LIVCDVDR) devient Livre CD (LIVCD)
-df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIVCD", "LIVCDVDR")] <- "LIVCD"
-
-# Roman (ROM) + E-book (TE) devient Roman (ROM)
-df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("ROM", "TE")] <- "ROM"
-
 # Renommage des catégories 1
 df_book_Tls$Cat1 <- as.character(df_book_Tls$Cat1)
 df_book_Tls$Cat1[df_book_Tls$Cat1=="A"] <- "Adulte"
-df_book_Tls$Cat1[df_book_Tls$Cat1=="E"] <- "Enfant"
+
+# Bébé (BB) + Très petit (TP) + Enfant (E) devient Enfant (E)
+df_book_Tls$Cat1[df_book_Tls$Cat1 %in% c("BB", "TP", "E")] <- "Enfant"
+
 df_book_Tls$Cat1 <- as.factor(df_book_Tls$Cat1)
+
+
+# Renommage des catégories 2
+df_book_Tls$Cat2 <- as.character(df_book_Tls$Cat2)
+
+# Livre (LIV) + Livre (LV) devient Livre
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIV", "LV")] <- "Livre"
+
+# CD/DVD ROM (CDVDROM) devient CD
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("CDVDROM")] <- "CD"
+
+# Livre CD (LIVCD) + Livre CD/DVD ROM (LIVCDVDR) devient Livre CD
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIVCD", "LIVCDVDR")] <- "Livre CD"
+
+# Roman (ROM) + E-book (TE) devient Roman (car le seul E-book du dataset correspond à un roman)
+df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("ROM", "TE")] <- "Roman"
+
+# ALB devient Album
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "ALB"] <- "Album"
+
+# METLAN devient Langue
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "METLAN"] <- "Langue"
+
+# LIVDOC devient Livre Documentaire
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "LIVDOC"] <- "Livre Documentaire"
+
+# CONTE devient Conte
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "CONTE"] <- "Conte"
+
+# PERIO devient Periodique
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "PERIO"] <- "Périodique"
+
+# POL devient Polar
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "POL"] <- "Polar"
+
+# SF devient Science Fiction
+df_book_Tls$Cat2[df_book_Tls$Cat2 == "SF"] <- "Science Fiction"
+
+df_book_Tls$Cat2 <- as.factor(df_book_Tls$Cat2)
+
 
 
 # Suppression des lignes vides -----
@@ -82,7 +110,8 @@ df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total
 df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 
 # Plot dataframe 
-ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
+ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1) + ggtitle("Evolution du nombre de prêts entre 2011 et 2018")
+
 
 # Top 10 des auteurs
 # On calcule le nombre de prêt par année et auteur
@@ -102,8 +131,7 @@ auteurs2018 <- ddply(auteurs2018, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_
 top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb_prêts, decreasing = TRUE),],10)
 
 # On l'affiche
-ggplot(top10auteurs2018, aes(x=Auteur, y=Nb_prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() 
-
+ggplot(top10auteurs2018, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() + ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts") 
 
 
 # Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
