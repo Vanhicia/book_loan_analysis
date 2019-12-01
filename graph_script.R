@@ -67,10 +67,10 @@ df_book_Tls <- na.omit(df_book_Tls)
 
 
 # Plot du nombre de prêts par catégorie au cours des années ----------
+df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total.nbre.prêts=sum(Nb_prêts))
 
 # On enleve les lignes sans catégorie 1
-df_book_Tls <- df_book_Tls[df_book_Tls$Cat1 !="",]
-df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total.nbre.prêts=sum(Nb_prêts))
+df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 
 # Plot dataframe 
 ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
