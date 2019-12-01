@@ -67,12 +67,15 @@ df_book_Tls <- na.omit(df_book_Tls)
 
 
 # Plot du nombre de prêts par catégorie au cours des années ----------
+
+# On enleve les lignes sans catégorie 1
+df_book_Tls <- df_book_Tls[df_book_Tls$Cat1 !="",]
 df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total.nbre.prêts=sum(Nb_prêts))
 
-#TODO : enlever lignes sans catégorie 1
+# Plot dataframe 
 ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
 
-# top 10 des auteurs
+# Top 10 des auteurs
 auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb.prêts=sum(Nb_prêts))
 auteurs <- auteurs[auteurs$Auteur != "-",]
 auteurs2018 <- auteurs[auteurs$Année == 2018,]
@@ -85,6 +88,7 @@ ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity",
 # TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de l'édition
 
 
+# Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
 
 # On garde que les emprunts de 2018
 df_2018 <- df_book_Tls[df_book_Tls$Année=="2018",] 
@@ -110,6 +114,9 @@ df_2018_editeur_with_rownames <- rbind(rep(value_max,times) , rep(0,times) , df_
 
 # Plot le graphe radar
 radarchart(df_2018_editeur_with_rownames)
+
+
+
 
 
 
