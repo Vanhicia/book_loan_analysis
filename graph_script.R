@@ -38,8 +38,11 @@ df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
 
 
 # Nettoyage des éditeurs : suppr infos sur l'année de l'édition
-#TODO df_book_Tls$Année_édition <- sub(".+(?=([,][ ][1|2][0|9][0-9]{2}))","",df_book_Tls$Editeur)
+#substr(x, nchar(x), nchar(x)-5)
+
+#df_book_Tls$Année_édition <- sub(".+(?=([,][ ][1|2][0|9][0-9]{2}))","",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[,][ ][0-9]{4}-?","",df_book_Tls$Editeur)
+
 
 # Renommage et fusion des catégories similaires ----------------------
 
@@ -67,7 +70,7 @@ df_book_Tls <- na.omit(df_book_Tls)
 df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total.nbre.prêts=sum(Nb_prêts))
 
 #TODO : enlever lignes sans catégorie 1
-ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat.1)
+ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
 
 # top 10 des auteurs
 auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb.prêts=sum(Nb_prêts))
@@ -86,10 +89,13 @@ ggplot(top10auteurs2018, aes(x=Auteur, y=Nb.prêts)) + geom_bar(stat="identity",
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type
 Flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
-table(Flammarion$Cat2)
-df_editeur_par_cat_Tls <- ddply(Flammarion, .(Année), function(x){
+df_editeur <- ddply(Flammarion, .(Année), function(x){
   table(x$Cat2)
 }) 
 
-# TODO : graphe
+# On enlève les colonnes vides
+df_editeur <- df_editeur[, colSums(df_editeur != 0) > 0]
+
+df_editeur <- melt(df_editeur, id.vars="Année", variable.name = "Type", value.name = "Nombre")
+ggplot(df_editeur, aes(Année,Nombre, col=Type)) + geom_line() + geom_point()
 
