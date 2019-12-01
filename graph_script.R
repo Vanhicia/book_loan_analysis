@@ -37,19 +37,16 @@ df_book_Tls <- rename(df_book_Tls, c(ANNEE = "Année",
 df_book_Tls$Auteur <- gsub("[(].*[)]","",df_book_Tls$Auteur)
 
 
-# Nettoyage des éditeurs : suppr infos sur l'année de l'édition
-
+# Nettoyage des éditeurs
 # On enlève les adresses et pays des éditeurs
 df_book_Tls$Editeur <- gsub(" ?[(].+[)] ?","",df_book_Tls$Editeur)
-
-# On ajoute une colonne pour l'année de l'édition de l'imprimé
-df_book_Tls$Année_édition <- gsub("[^0-9]+","",df_book_Tls$Editeur)
 
 # On nettoie la colonne des éditeurs et harmonise les notations
 df_book_Tls$Editeur <- gsub("[,][ ][0-9]{4}-?","",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[.]","",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[]],","] ;",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[ ],"," ;",df_book_Tls$Editeur)
+
 
 
 # Renommage et fusion des catégories similaires ----------------------
@@ -66,7 +63,7 @@ df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("CDVDROM")] <- "CD"
 # Livre CD (LIVCD) + Livre CD/DVD ROM (LIVCDVDR) devient Livre CD (LIVCD)
 df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("LIVCD", "LIVCDVDR")] <- "LIVCD"
 
-# Roman (ROM) + ??? (TE) devient ROM (ROM)
+# Roman (ROM) + E-book (TE) devient ROM (ROM)
 df_book_Tls$Cat2[df_book_Tls$Cat2 %in% c("ROM", "TE")] <- "ROM"
 
 
@@ -84,21 +81,30 @@ df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total.nbre.prêts, color=Cat2)) + geom_line() + facet_grid(.~Cat1)
 
 # Top 10 des auteurs
+# On calcule le nombre de prêt par année et auteur
 auteurs <- ddply(df_book_Tls, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_prêts))
+
+# On garde les auteurs de 2018
 auteurs <- auteurs[auteurs$Auteur != "-",]
 auteurs2018 <- auteurs[auteurs$Année == 2018,]
+
+# On enlève les espaces inutiles dans les noms des auteurs
+auteurs2018$Auteur <- trimws(auteurs2018$Auteur, which = c("right"))
+
+# On fusionne les lignes ayant les mêmes noms d'auteurs
+auteurs2018 <- ddply(auteurs2018, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_prêts))
+
+# On récupère le top 10
 top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb_prêts, decreasing = TRUE),],10)
-grepl("Sobral, Patrick", top10auteurs2018$Auteur)
+
+# On l'affiche
 ggplot(top10auteurs2018, aes(x=Auteur, y=Nb_prêts)) + geom_bar(stat="identity", show.legend = FALSE) + coord_flip() 
-# TODO : parvenir à rassembler les lignes avec le m$eme auteur
 
-
-# TODO : imprimé récent ou ancien ? faire comparaison entre année d'emprunt et l'année de l'édition
 
 
 # Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
 # On garde que les emprunts de 2018
-df_2018 <- df_book_Tls[df_book_Tls$Année=="2018",] 
+df_2018 <- df_book_Tls[df_book_Tls$Année == "2018",] 
 
 # On trie par éditeur et type d'imprimés
 df_2018_editeur <- df_2018[,c("Editeur","Cat2")]
