@@ -44,7 +44,9 @@ df_book_Tls$Editeur <- gsub("[,][ ][0-9]{4}-?","",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[.]","",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[]],","] ;",df_book_Tls$Editeur)
 df_book_Tls$Editeur <- gsub("[ ],"," ;",df_book_Tls$Editeur)
-
+df_book_Tls$Editeur <- gsub(".+:","",df_book_Tls$Editeur)
+df_book_Tls$Editeur <- trimws(df_book_Tls$Editeur, which = c("right"))
+df_book_Tls$Editeur <- trimws(df_book_Tls$Editeur, which = c("left"))
 
 
 # Renommage et fusion des catégories similaires ----------------------
@@ -114,7 +116,7 @@ dev.new()
 print(ggplot(df_total_par_cat1_Tls, aes(x=Année, y=Total_nbre_prêts, fill=Cat1)) +
   geom_bar(stat="identity", position=position_dodge()) +
   ggtitle("Evolution du nombre de prêts par les adultes/enfants") +
-  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9")))
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))) +  ylab("Total du nombre de prêts")
   
 
 # Plot du nombre de prêts par catégorie au cours des années ----------
@@ -127,7 +129,7 @@ df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 dev.new()
 print(ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) +
   geom_line() + facet_grid(.~Cat1) +
-  ggtitle("Evolution du nombre de prêts pour chaque catégorie"))
+  ggtitle("Evolution du nombre de prêts pour chaque catégorie")) +  ylab("Total du nombre de prêts")
 
 
 # Top 10 des auteurs
@@ -180,7 +182,7 @@ times = nrow(df_2018_editeur)
 
 # Plot le graphe radar
 dev.new()
-radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames))
+radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames), title="Nombre d'imprimés par catégorie pour chaque éditeur en 2018")
 
 
 
@@ -203,14 +205,15 @@ times = nrow(df_top_editeur2018)
 
 # On ajoute les bornes dans le dataframe et on l'affiche
 dev.new()
+
 layout(matrix(1:6, ncol=3)) 
 lapply(1:5, function(i) { 
-  radarchart(rbind(rep(value_max,times) , rep(0,times) , df_top_editeur2018[i,-1]))
-})
+  radarchart(rbind(rep(value_max,times) , rep(0,times) , df_top_editeur2018[i,-1]), title = rownames(df_top_editeur2018)[i])
+}) 
 
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type -------
-flammarion <- df_book_Tls[df_book_Tls$Editeur=="Paris : Flammarion",] 
+flammarion <- df_book_Tls[df_book_Tls$Editeur=="Flammarion",] 
 df_un_editeur <- ddply(flammarion, .(Année), function(x){
   table(x$Cat2)
 }) 
