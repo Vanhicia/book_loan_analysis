@@ -212,7 +212,7 @@ times = nrow(df_2018_top5_editeur)
 
 # On ajoute les bornes dans le dataframe et on l'affiche
 # Ouvre le fichier pdf
-pdf("df_2018_top5_editeur.pdf")
+pdf("df_2018_top5_editeur.pdf", width = 10, height = 6)
 layout(matrix(1:6, ncol=3)) 
 lapply(1:5, function(i) { 
   radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_top5_editeur[i,-1]), title = rownames(df_2018_top5_editeur)[i])
