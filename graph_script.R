@@ -138,33 +138,51 @@ dev.off()
 # On garde que les emprunts de 2018
 df_2018 <- df[df$Année == "2018",] 
 
-# Pour 2018, top 10 des auteurs
-# On calcule le nombre de prêt par année et auteur
-df_2018_auteurs <- ddply(df_2018, .(Auteur), summarize, Nb_prêts=sum(Nb_prêts))
+# Pour 2018, top 5 des auteurs par section (ie catégorie 1)
 
 # On enlève les auteurs vides
-df_2018_auteurs <- df_2018_auteurs[df_2018_auteurs$Auteur != "-",]
+df_2018_auteurs <- df_2018[df_2018$Auteur != "-",]
 
 # On enlève les espaces inutiles dans les noms des auteurs
 df_2018_auteurs$Auteur <- trimws(df_2018_auteurs$Auteur, which = c("right"))
 
-# On fusionne les lignes ayant les mêmes noms d'auteurs
-df_2018_auteurs <- ddply(df_2018_auteurs, .(Auteur), summarize, Nb_prêts=sum(Nb_prêts))
+# On crée un dataframe composé de la catégorie pour chaque auteur
+df_2018_auteurs_section <- df_2018_auteurs[,c("Auteur","Cat1")]
+df_2018_auteurs_section <- unique(df_2018_auteurs_section)
 
-# On récupère le top 10
-df_2018_top10_auteurs <- head(df_2018_auteurs[order(df_2018_auteurs$Nb_prêts, decreasing = TRUE),],10)
+# On calcule le nombre de prêts par auteur
+df_2018_auteurs1 <- ddply(df_2018_auteurs, .(Auteur), summarize, Nb_prêts=sum(Nb_prêts))
 
-# On l'affiche
+# On merge les 2 dataframes
+df_2018_auteurs_section <- merge(df_2018_auteurs_section,df_2018_auteurs1)
+
+# On récupère le top 5
+fn_top <- function(x) {
+  return(head(x[order(x$Nb_prêts, decreasing = TRUE),],5))
+}
+
+df_2018_top10_auteurs <- ddply(df_2018_auteurs_section, .(Cat1), fn_top)
+
+# On affiche le top des auteurs de la section Enfant
 # Ouvre le fichier pdf
-pdf("df_2018_top10_auteurs.pdf", width=6,height=4)
-print(ggplot(df_2018_top10_auteurs, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
+pdf("df_2018_top5_auteurs_enfant.pdf", width=7,height=4)
+print(ggplot(df_2018_top10_auteurs[df_2018_top10_auteurs$Cat1=="Enfant",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
   geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
-  ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
+  ggtitle("Top 5 des auteurs d'imprimés pour enfants, en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
 # Ferme le ficher pdf
 dev.off() 
 
-# Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
+# On affiche le top des auteurs de la section Adulte
+# Ouvre le fichier pdf
+pdf("df_2018_top5_auteurs_adulte.pdf", width=7,height=4)
+print(ggplot(df_2018_top10_auteurs[df_2018_top10_auteurs$Cat1=="Adulte",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
+        geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
+        ggtitle("Top 5 des auteurs d'imprimés pour adultes, en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
+# Ferme le ficher pdf
+dev.off() 
 
+
+# Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
 
 # On trie par éditeur et type d'imprimés
 df_2018_editeur_type <- ddply(df_2018, .(Editeur), function(x){
@@ -220,7 +238,7 @@ lapply(1:5, function(i) {
 # Ferme le ficher pdf
 dev.off() 
 
-# Chaque année pour un éditeur, le nombre d'imprimés par type -------
+# Chaque année pour l'éditeur Flammarion, le nombre d'imprimés par type -------
 df_flammarion <- df[df$Editeur=="Flammarion",] 
 df_flammarion_type <- ddply(df_flammarion, .(Année), function(x){
   table(x$Cat2)
