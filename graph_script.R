@@ -115,8 +115,8 @@ df_total_par_cat1_Tls <- df_total_par_cat1_Tls[df_total_par_cat1_Tls$Cat1 !="",]
 dev.new()
 print(ggplot(df_total_par_cat1_Tls, aes(x=Année, y=Total_nbre_prêts, fill=Cat1)) +
   geom_bar(stat="identity", position=position_dodge()) +
-  ggtitle("Evolution du nombre de prêts par les adultes/enfants") +
-  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))) +  ylab("Total du nombre de prêts")
+  ggtitle("Evolution du nombre de prêts par section (adulte/enfant)") +
+  scale_fill_manual("Section", values=c("#999999", "#E69F00", "#56B4E9"))) +  ylab("Nombre de prêts")
   
 
 # Plot du nombre de prêts par catégorie au cours des années ----------
@@ -128,8 +128,8 @@ df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 # Plot dataframe 
 dev.new()
 print(ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) +
-  geom_line() + facet_grid(.~Cat1) +
-  ggtitle("Evolution du nombre de prêts pour chaque catégorie")) +  ylab("Total du nombre de prêts")
+  geom_line() + facet_grid(.~Cat1) + labs(color="Type") +
+  ggtitle("Evolution du nombre de prêts pour chaque type d'imprimés")) +  ylab("Nombre de prêts")
 
 
 # Top 10 des auteurs
