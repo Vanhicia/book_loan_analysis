@@ -112,11 +112,10 @@ df_total_par_cat1_Tls <- ddply(df_book_Tls, .(Année,Cat1), summarize, Total_nbr
 df_total_par_cat1_Tls <- df_total_par_cat1_Tls[df_total_par_cat1_Tls$Cat1 !="",]
 
 # Plot dataframe 
-dev.new()
 print(ggplot(df_total_par_cat1_Tls, aes(x=Année, y=Total_nbre_prêts, fill=Cat1)) +
   geom_bar(stat="identity", position=position_dodge()) +
   ggtitle("Evolution du nombre de prêts par section (adulte/enfant)") +
-  scale_fill_manual("Section", values=c("#999999", "#E69F00", "#56B4E9"))) +  ylab("Nombre de prêts")
+  scale_fill_manual("Section", values=c("#999999", "#E69F00", "#56B4E9")) +  ylab("Nombre de prêts"))
   
 
 # Plot du nombre de prêts par catégorie au cours des années ----------
@@ -126,10 +125,9 @@ df_total_par_cat_Tls <- ddply(df_book_Tls, .(Année,Cat1,Cat2), summarize, Total
 df_total_par_cat_Tls <- df_total_par_cat_Tls[df_total_par_cat_Tls$Cat1 !="",]
 
 # Plot dataframe 
-dev.new()
 print(ggplot(df_total_par_cat_Tls, aes(x=Année, y=Total_nbre_prêts, color=Cat2)) +
   geom_line() + facet_grid(.~Cat1) + labs(color="Type") +
-  ggtitle("Evolution du nombre de prêts pour chaque type d'imprimés")) +  ylab("Nombre de prêts")
+  ggtitle("Evolution du nombre de prêts pour chaque type d'imprimés") +  ylab("Nombre de prêts"))
 
 
 # Top 10 des auteurs
@@ -150,10 +148,9 @@ auteurs2018 <- ddply(auteurs2018, .(Auteur,Année), summarize, Nb_prêts=sum(Nb_
 top10auteurs2018 <- head(auteurs2018[order(auteurs2018$Nb_prêts, decreasing = TRUE),],10)
 
 # On l'affiche
-dev.new()
 print(ggplot(top10auteurs2018, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
   geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
-  ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts")) 
+  ggtitle("Top 10 des auteurs  en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
 
 
 # Pour 2018 pour chaque éditeur, le nombre d'imprimés par type -------
@@ -161,69 +158,72 @@ print(ggplot(top10auteurs2018, aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) 
 df_2018 <- df_book_Tls[df_book_Tls$Année == "2018",] 
 
 # On trie par éditeur et type d'imprimés
-df_2018_editeur <- df_2018[,c("Editeur","Cat2")]
-df_2018_editeur <- ddply(df_2018_editeur, .(Editeur), function(x){
+df_2018_editeur_type <- ddply(df_2018, .(Editeur), function(x){
   table(x$Cat2)
 }) 
 
 # On enlève les colonnes vides
-df_2018_editeur <- df_2018_editeur[, colSums(df_2018_editeur != 0) > 0]
+df_2018_editeur_type <- df_2018_editeur_type[, colSums(df_2018_editeur_type != 0) > 0]
 
 # On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
-df_2018_editeur_with_rownames <- data.frame(df_2018_editeur[,-1], row.names=df_2018_editeur[,1])
+df_2018_editeur_type_with_rownames <- data.frame(df_2018_editeur_type[,-1], row.names=df_2018_editeur_type[,1])
 
-# On ajoute le nombre de prêts pour effectuer le top 5 après
-df_top_editeur2018 <- df_2018_editeur_with_rownames
-df_top_editeur2018$Nb_prêts <- apply(df_top_editeur2018,1,sum)
+# On ajoute le nombre d'imprimés  pour effectuer le top 5 après
+df_2018_top_editeur <- df_2018_editeur_type_with_rownames
+df_2018_top_editeur$Nb_imprimés <- apply(df_2018_top_editeur,1,sum)
 
 # On détermine les bornes du graphe radar
-value_max = max(df_2018_editeur_with_rownames, na.rm=TRUE)
-times = nrow(df_2018_editeur)
+value_max = max(df_2018_editeur_type_with_rownames, na.rm=TRUE)
+times = nrow(df_2018_editeur_type)
 
 # Plot le graphe radar
-dev.new()
-radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_with_rownames), title="Nombre d'imprimés par catégorie pour chaque éditeur en 2018")
+radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_editeur_type_with_rownames), title="Nombre d'imprimés par catégorie pour chaque éditeur en 2018")
 
 
 
 # TOP 5 des éditeurs en 2018 ----------------------------------------
 # On remet la colonne Editeur
-df_top_editeur2018 <- tibble::rownames_to_column(df_top_editeur2018, "Editeur")
+df_2018_top_editeur <- tibble::rownames_to_column(df_2018_top_editeur, "Editeur")
 
 # On garde les 5 éditeurs dont les imprimés ont été les plus empruntés
-df_top_editeur2018 <- head(df_top_editeur2018[order(df_top_editeur2018$Nb_prêts, decreasing = TRUE),],5)
+df_2018_top_editeur <- head(df_2018_top_editeur[order(df_2018_top_editeur$Nb_imprimés, decreasing = TRUE),],5)
 
 # On remplace les noms des lignes par le nom des éditeurs et on enlève la colonne correspondante
-df_top_editeur2018 <- data.frame(df_top_editeur2018[,-1], row.names=df_top_editeur2018[,1])
+df_2018_top_editeur <- data.frame(df_2018_top_editeur[,-1], row.names=df_2018_top_editeur[,1])
 
-# On enlève la colonne du nombre de prêts
-df_top_editeur2018$Nb_prêts <- NULL
+# On enlève la colonne du nombre d'imprimés
+df_2018_top_editeur$Nb_imprimés <- NULL
 
 # On détermine les bornes du graphe radar
-value_max = max(df_top_editeur2018, na.rm=TRUE)
-times = nrow(df_top_editeur2018)
+value_max = max(df_2018_top_editeur, na.rm=TRUE)
+times = nrow(df_2018_top_editeur)
 
 # On ajoute les bornes dans le dataframe et on l'affiche
-dev.new()
-
 layout(matrix(1:6, ncol=3)) 
 lapply(1:5, function(i) { 
-  radarchart(rbind(rep(value_max,times) , rep(0,times) , df_top_editeur2018[i,-1]), title = rownames(df_top_editeur2018)[i])
+  radarchart(rbind(rep(value_max,times) , rep(0,times) , df_2018_top_editeur[i,-1]), title = rownames(df_2018_top_editeur)[i])
 }) 
 
 
 # Chaque année pour un éditeur, le nombre d'imprimés par type -------
-flammarion <- df_book_Tls[df_book_Tls$Editeur=="Flammarion",] 
-df_un_editeur <- ddply(flammarion, .(Année), function(x){
+df_flammarion <- df_book_Tls[df_book_Tls$Editeur=="Flammarion",] 
+df_flammarion_type <- ddply(df_flammarion, .(Année), function(x){
   table(x$Cat2)
 }) 
+df_flammarion_prêts <- df_flammarion[ ,c("Année", "Editeur","Cat2","Nb_prêts")]
+df_flammarion_prêts <- ddply(df_flammarion_prêts, .(Année, Editeur, Cat2), summarize, Nb_prêts=sum(Nb_prêts))
 
 # On enlève les colonnes vides
-df_un_editeur <- df_un_editeur[, colSums(df_un_editeur != 0) > 0]
+df_flammarion_type <- df_flammarion_type[, colSums(df_flammarion_type != 0) > 0]
 
 # Plop dataframe
-dev.new()
-df_un_editeur <- melt(df_un_editeur, id.vars="Année", variable.name = "Type", value.name = "Nombre")
-print(ggplot(df_un_editeur, aes(Année,Nombre, col=Type)) + 
+# Type
+df_flammarion_type <- melt(df_flammarion_type, id.vars="Année", variable.name = "Type", value.name = "Nombre")
+print(ggplot(df_flammarion_type, aes(Année,Nombre, col=Type)) + 
   geom_line() + geom_point() +
-  ggtitle("Evolution du nombre de prêts par catégorie pour l'éditeur Flammarion") + xlab("Année") + ylab("Nombre de prêts"))
+  ggtitle("Evolution du nombre d'imprimés par catégorie pour l'éditeur Flammarion") + xlab("Année") + ylab("Nombre d'imprimés"))
+
+# Nombre de prêts
+print(ggplot(df_flammarion_prêts, aes(Année,Nb_prêts, col=Cat2)) + 
+        geom_line() + geom_point() +
+        ggtitle("Evolution du nombre de prêts par catégorie pour l'éditeur Flammarion") + xlab("Année") + ylab("Nombre d'imprimés"))
