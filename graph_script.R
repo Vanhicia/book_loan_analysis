@@ -146,27 +146,20 @@ df_2018_auteurs <- df_2018[df_2018$Auteur != "-",]
 # On enlève les espaces inutiles dans les noms des auteurs
 df_2018_auteurs$Auteur <- trimws(df_2018_auteurs$Auteur, which = c("right"))
 
-# On crée un dataframe composé de la catégorie pour chaque auteur
-df_2018_auteurs_section <- df_2018_auteurs[,c("Auteur","Cat1")]
-df_2018_auteurs_section <- unique(df_2018_auteurs_section)
-
 # On calcule le nombre de prêts par auteur
-df_2018_auteurs1 <- ddply(df_2018_auteurs, .(Auteur), summarize, Nb_prêts=sum(Nb_prêts))
-
-# On merge les 2 dataframes
-df_2018_auteurs_section <- merge(df_2018_auteurs_section,df_2018_auteurs1)
+df_2018_auteurs <- ddply(df_2018_auteurs, .(Auteur, Cat1), summarize, Nb_prêts=sum(Nb_prêts))
 
 # On récupère le top 5
 fn_top <- function(x) {
   return(head(x[order(x$Nb_prêts, decreasing = TRUE),],5))
 }
 
-df_2018_top10_auteurs <- ddply(df_2018_auteurs_section, .(Cat1), fn_top)
+df_2018_top5_auteurs <- ddply(df_2018_auteurs, .(Cat1), fn_top)
 
 # On affiche le top des auteurs de la section Enfant
 # Ouvre le fichier pdf
 pdf("df_2018_top5_auteurs_enfant.pdf", width=7,height=4)
-print(ggplot(df_2018_top10_auteurs[df_2018_top10_auteurs$Cat1=="Enfant",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
+print(ggplot(df_2018_top5_auteurs[df_2018_top5_auteurs$Cat1=="Enfant",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
   geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
   ggtitle("Top 5 des auteurs d'imprimés pour enfants, en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
 # Ferme le ficher pdf
@@ -175,7 +168,7 @@ dev.off()
 # On affiche le top des auteurs de la section Adulte
 # Ouvre le fichier pdf
 pdf("df_2018_top5_auteurs_adulte.pdf", width=7,height=4)
-print(ggplot(df_2018_top10_auteurs[df_2018_top10_auteurs$Cat1=="Adulte",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
+print(ggplot(df_2018_top5_auteurs[df_2018_top5_auteurs$Cat1=="Adulte",], aes(x= reorder(Auteur, Nb_prêts), y=Nb_prêts)) + 
         geom_bar(stat="identity", show.legend = FALSE) + coord_flip() +
         ggtitle("Top 5 des auteurs d'imprimés pour adultes, en 2018") + xlab("Auteur") + ylab("Nombre de prêts"))
 # Ferme le ficher pdf
